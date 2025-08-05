@@ -1,5 +1,11 @@
-import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from "class-validator";
-import { UserRole } from "../user.entity";
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { UserGender, UserRole } from '../user.entity';
 
 export class RegisterDto {
   @IsEmail()
@@ -14,28 +20,37 @@ export class RegisterDto {
   firstName: string;
 
   @IsString()
-  @IsOptional()
-  middleName?: string;
+  @IsNotEmpty()
+  middleName: string;
 
   @IsString()
   @IsNotEmpty()
   lastName: string;
 
-  @IsInt()
-  @Min(0)
-  @Max(1)
-  gender: 0 | 1;
+  @IsString()
+  @IsOptional()
+  company?: string;
+
+  // @IsInt()
+  // @Min(0)
+  // @Max(1)
+  // gender: 0 | 1;
 
   @IsEnum(UserRole)
-  @IsOptional()
-  role?: UserRole;
+  @IsNotEmpty()
+  role: UserRole;
+
+  @IsEnum(UserGender)
+  @IsNotEmpty()
+  gender: UserGender;
 }
 
 export class RegistrationResponseDto {
   email: string;
   firstName: string;
-  middleName?: string;
+  middleName: string;
   lastName: string;
-  gender: 0 | 1;
+  company?: string;
+  gender: UserGender;
   role: UserRole;
 }

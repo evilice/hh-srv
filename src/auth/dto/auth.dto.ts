@@ -1,5 +1,5 @@
 import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
-import { UserRole } from '../../user/user.entity';
+import { UserGender, UserRole } from '../../user/user.entity';
 
 export class SigninDto {
   @IsEmail()
@@ -24,7 +24,7 @@ export class AuthResponseDto {
     firstName: string;
     middleName?: string;
     lastName: string;
-    gender: 0 | 1;
+    gender: UserGender;
     role: UserRole;
   };
-} 
+}

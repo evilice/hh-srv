@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  // ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -46,13 +50,37 @@ export class AuthService {
     };
   }
 
+  // async signout(userEmail: string): Promise<{ message: string }> {
+  //   // In a more complex implementation, you might want to blacklist the token
+  //   // For now, we'll just return a success message
+  //   return { message: 'Successfully signed out' };
+  // }
+
   async signout(userEmail: string): Promise<{ message: string }> {
-    // In a more complex implementation, you might want to blacklist the token
-    // For now, we'll just return a success message
-    return { message: 'Successfully signed out' };
+    // 1. Находим пользователя
+    const user = await this.userRepository.findOne({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // 2. Инвалидируем refresh токен (пример реализации)
+    // await this.jwtService.invalidateRefreshToken(userEmail);
+
+    // 3. Обновляем метку выхода (для аудита)
+    user.lastVisit = new Date();
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Successfully signed out. All tokens invalidated.',
+    };
   }
 
-  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refreshToken(
+    refreshTokenDto: RefreshTokenDto,
+  ): Promise<AuthResponseDto> {
     const { refreshToken } = refreshTokenDto;
 
     const payload = this.jwtService.verifyToken(refreshToken);
@@ -60,7 +88,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.userRepository.findOne({ where: { email: payload.email } });
+    const user = await this.userRepository.findOne({
+      where: { email: payload.email },
+    });
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

@@ -15,12 +15,19 @@ import { RolesGuard } from './guards/roles.guard';
     TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.register({
-      secret: 'mMEjJISTLAoTHUBvIqgsK6MvdIqdExpUeMf8Tr9aYET8vat6XdCUoADMbgRrEhgl', // In production, use environment variable
+      secret:
+        'mMEjJISTLAoTHUBvIqgsK6MvdIqdExpUeMf8Tr9aYET8vat6XdCUoADMbgRrEhgl', // In production, use environment variable
       signOptions: { expiresIn: '15m' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, LocalStrategy, CustomJwtService, RolesGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    LocalStrategy,
+    CustomJwtService,
+    RolesGuard,
+  ],
   exports: [AuthService, RolesGuard],
 })
 export class AuthModule {}
