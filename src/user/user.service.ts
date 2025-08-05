@@ -3,24 +3,35 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { RegistrationResponseDto, RegisterDto } from './dto/user.dto';
-import { User, UserRole } from './user.entity';
+import { User, UserGender, UserRole } from './user.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>
+    private userRepository: Repository<User>,
   ) {}
-  
+
   async register(registerDto: RegisterDto): Promise<RegistrationResponseDto> {
-    const { email, password, firstName, middleName, lastName, gender, role } = registerDto;
+    const {
+      email,
+      password,
+      firstName,
+      middleName,
+      lastName,
+      company,
+      gender,
+      role,
+    } = registerDto;
 
     // Check if user already exists
-    const existingUser = await this.userRepository.findOne({ where: { email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
-
+    console.log(gender);
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -31,7 +42,8 @@ export class UserService {
       firstName,
       middleName,
       lastName,
-      gender,
+      company,
+      gender: gender || UserGender.MALE,
       role: role || UserRole.SEEKER, // Default to seeker if not specified
     });
 
@@ -43,7 +55,8 @@ export class UserService {
       middleName: user.middleName,
       lastName: user.lastName,
       gender: user.gender,
-      role: user.role
+      company: user.company,
+      role: user.role,
     };
   }
 }

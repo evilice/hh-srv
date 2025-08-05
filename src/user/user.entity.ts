@@ -1,4 +1,9 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -6,25 +11,40 @@ export enum UserRole {
   EMPLOYER = 'employer',
 }
 
+export enum UserGender {
+  MALE = 'male',
+  FEMALE = 'female',
+}
+
 @Entity()
 export class User {
-  @PrimaryColumn({ unique: true })
-  email: string;
-
-  @Column()
-  password: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   firstName: string;
 
-  @Column({ nullable: true })
+  @Column()
   middleName: string;
 
   @Column()
   lastName: string;
 
-  @Column({ type: 'int', width: 1 })
-  gender: 0 | 1;
+  @Column()
+  company: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  password: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserGender,
+    default: UserGender.MALE,
+  })
+  gender: UserGender;
 
   @Column({
     type: 'enum',
