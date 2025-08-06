@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { RegistrationResponseDto, RegisterDto } from './dto/user.dto';
-import { User, UserGender, UserRole } from './user.entity';
+import { User } from './user.entity';
 
 @Injectable()
 export class UserService {
@@ -31,9 +31,26 @@ export class UserService {
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
-    console.log(gender);
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // --->  register seeker
+
+    // role
+    // email
+    // passw
+    // firstName
+    // middleName
+    // lastName
+    // gender
+
+    // ---> register employer
+
+    // role
+    // email
+    // passw
+    // firstName
+    // company
 
     // Create new user
     const user = this.userRepository.create({
@@ -43,8 +60,8 @@ export class UserService {
       middleName,
       lastName,
       company,
-      gender: gender || UserGender.MALE,
-      role: role || UserRole.SEEKER, // Default to seeker if not specified
+      gender: gender || null,
+      role,
     });
 
     await this.userRepository.save(user);
