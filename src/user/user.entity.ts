@@ -24,13 +24,13 @@ export class User {
   @Column()
   firstName: string;
 
-  @Column()
+  @Column({ nullable: true })
   middleName: string;
 
-  @Column()
+  @Column({ nullable: true })
   lastName: string;
 
-  @Column()
+  @Column({ nullable: true })
   company: string;
 
   @Column({ unique: true })
@@ -40,6 +40,7 @@ export class User {
   password: string;
 
   @Column({
+    nullable: true,
     type: 'enum',
     enum: UserGender,
     default: UserGender.MALE,

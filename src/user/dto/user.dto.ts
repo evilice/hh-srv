@@ -20,37 +20,32 @@ export class RegisterDto {
   firstName: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   middleName: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   lastName: string;
 
   @IsString()
   @IsOptional()
   company?: string;
 
-  // @IsInt()
-  // @Min(0)
-  // @Max(1)
-  // gender: 0 | 1;
-
   @IsEnum(UserRole)
   @IsNotEmpty()
   role: UserRole;
 
   @IsEnum(UserGender)
-  @IsNotEmpty()
+  @IsOptional()
   gender: UserGender;
 }
 
 export class RegistrationResponseDto {
   email: string;
   firstName: string;
-  middleName: string;
-  lastName: string;
+  middleName?: string;
+  lastName?: string;
   company?: string;
-  gender: UserGender;
+  gender?: UserGender;
   role: UserRole;
 }
