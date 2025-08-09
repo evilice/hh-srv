@@ -3,11 +3,12 @@ import {
   // ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User } from '../user/user.entity';
-import { SigninDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
+import { SigninDto, AuthResponseDto } from './dto/auth.dto';
 import { JwtService as CustomJwtService } from './jwt.service';
 
 @Injectable()
@@ -18,7 +19,11 @@ export class AuthService {
     private jwtService: CustomJwtService,
   ) {}
 
-  async signin(signinDto: SigninDto): Promise<AuthResponseDto> {
+  async signin(
+    signinDto: SigninDto,
+    req: Request,
+    res: Response,
+  ): Promise<AuthResponseDto> {
     const { email, password } = signinDto;
 
     const user = await this.validateUser(email, password);
@@ -36,9 +41,18 @@ export class AuthService {
       sub: user.email,
     });
 
+    if (res) {
+      res.cookie('refreshToken', tokens.refreshToken, {
+        // httpOnly: true,
+        // secure: this.configService.get('NODE_ENV') === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/auth',
+      });
+    }
+
     return {
       accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
       user: {
         email: user.email,
         firstName: user.firstName,
@@ -56,8 +70,10 @@ export class AuthService {
   //   return { message: 'Successfully signed out' };
   // }
 
-  async signout(userEmail: string): Promise<{ message: string }> {
-    // 1. Находим пользователя
+  async signout(
+    userEmail: string,
+    res?: Response,
+  ): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({
       where: { email: userEmail },
     });
@@ -66,22 +82,25 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // 2. Инвалидируем refresh токен (пример реализации)
-    // await this.jwtService.invalidateRefreshToken(userEmail);
-
-    // 3. Обновляем метку выхода (для аудита)
     user.lastVisit = new Date();
     await this.userRepository.save(user);
+
+    if (res) {
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        // secure: this.configService.get('NODE_ENV') === 'production',
+        sameSite: 'strict',
+        path: '/auth',
+      });
+    }
 
     return {
       message: 'Successfully signed out. All tokens invalidated.',
     };
   }
 
-  async refreshToken(
-    refreshTokenDto: RefreshTokenDto,
-  ): Promise<AuthResponseDto> {
-    const { refreshToken } = refreshTokenDto;
+  async refreshToken(req: Request, res?: Response): Promise<AuthResponseDto> {
+    const refreshToken = req.cookies.refreshToken as string;
 
     const payload = this.jwtService.verifyToken(refreshToken);
     if (!payload) {
@@ -101,9 +120,18 @@ export class AuthService {
       sub: user.email,
     });
 
+    if (res) {
+      res.cookie('refreshToken', tokens.refreshToken, {
+        // httpOnly: true,
+        // secure: this.configService.get('NODE_ENV') === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/auth',
+      });
+    }
+
     return {
       accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
       user: {
         email: user.email,
         firstName: user.firstName,

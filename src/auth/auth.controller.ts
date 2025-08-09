@@ -3,11 +3,13 @@ import {
   Post,
   Body,
   UseGuards,
-  Request,
-  // Get,
+  Req,
+  Res,
+  Request as NestRequest,
 } from '@nestjs/common';
+import { Request, Response } from 'express'; // Импортируем из express
 import { AuthService } from './auth.service';
-import { SigninDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
+import { SigninDto, AuthResponseDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 // import { RolesGuard } from './guards/roles.guard';
 // import { Roles } from './decorators/roles.decorator';
@@ -23,26 +25,34 @@ interface AuthRequest extends Request {
   user: JwtPayload; // Используем наш интерфейс
 }
 
-@Controller()
+@Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signin')
-  async signin(@Body() signinDto: SigninDto): Promise<AuthResponseDto> {
-    return this.authService.signin(signinDto);
+  async signin(
+    @Body() signinDto: SigninDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    return this.authService.signin(signinDto, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('signout')
-  async signout(@Request() req: AuthRequest): Promise<{ message: string }> {
-    return this.authService.signout(req.user.email);
+  async signout(
+    @NestRequest() req: AuthRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string }> {
+    return this.authService.signout(req.user.email, res);
   }
 
   @Post('refresh-token')
   async refreshToken(
-    @Body() refreshTokenDto: RefreshTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
-    return this.authService.refreshToken(refreshTokenDto);
+    return this.authService.refreshToken(req, res);
   }
 
   // Role-protected endpoints examples
