@@ -18,7 +18,6 @@ export class RefreshTokenDto {
 
 export class AuthResponseDto {
   accessToken: string;
-  refreshToken: string;
   user: {
     email: string;
     firstName: string;
