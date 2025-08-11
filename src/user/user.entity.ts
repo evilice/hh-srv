@@ -1,8 +1,10 @@
+import { VacancyEntity } from '../vacancy/vacancy.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 export enum UserRole {
@@ -59,4 +61,7 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   lastVisit: Date;
+
+  @OneToMany(() => VacancyEntity, (vacancy) => vacancy.employer)
+  vacancies: VacancyEntity[];
 }

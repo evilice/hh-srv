@@ -37,20 +37,3 @@ export class UserController {
     return req.user;
   }
 }
-
-// user/registration - OK
-// {
-// 	"email": "oos-info@yandex.ru",
-// 	"firstName": "Maxim",
-// 	"middleName": null,
-// 	"lastName": "Malakhov",
-// 	"gender": 0,
-// 	"role": "employer"
-// }
-
-// user/profile - OK
-// {
-// 	"email": "oos-info@yandex.ru",
-// 	"sub": "oos-info@yandex.ru",
-// 	"role": "employer"
-// }
