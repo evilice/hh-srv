@@ -1,9 +1,10 @@
-import { User } from '../entities';
+import { User, VacancyTest } from '../entities';
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -43,4 +44,7 @@ export class TestEntity {
 
   @ManyToOne(() => User, (user) => user.tests)
   createdBy: User;
+
+  @OneToMany(() => VacancyTest, (vacancyTest) => vacancyTest.test)
+  vacancies: VacancyTest[];
 }
