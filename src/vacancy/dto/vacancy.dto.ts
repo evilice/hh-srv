@@ -1,3 +1,4 @@
+import { Expose } from 'class-transformer';
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class CreateVacancyDto {
@@ -18,4 +19,35 @@ export class CreateVacancyDto {
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
+}
+
+export class VacancyResponseDto {
+  @Expose()
+  id: number;
+
+  @Expose()
+  title: string;
+
+  @Expose()
+  description: string;
+
+  @Expose()
+  salary_min: string;
+
+  @Expose()
+  salary_max: string;
+
+  @Expose()
+  is_active: boolean;
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  employer: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    company: string;
+  };
 }
