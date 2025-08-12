@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -63,5 +65,14 @@ export class VacancyController {
   @Roles(UserRole.EMPLOYER)
   async getMyVacancies(@Req() req: RequestWithUser): Promise<VacancyEntity[]> {
     return this.vacancyService.getEmployerVacancies(req.user.id);
+  }
+
+  @Get()
+  @Roles(UserRole.SEEKER)
+  async getAllVacancies(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ) {
+    return this.vacancyService.getAllActiveVacancies(page, limit);
   }
 }

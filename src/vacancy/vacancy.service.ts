@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { VacancyEntity } from './vacancy.entity';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
+import { VacancyResponseDto } from './dto/vacancy.dto';
 
 @Injectable()
 export class VacancyService {
@@ -56,5 +57,37 @@ export class VacancyService {
       where: { employerId },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async getAllActiveVacancies(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ data: VacancyResponseDto[]; count: number }> {
+    const [vacancies, count] = await this.vacancyRepository.findAndCount({
+      where: { is_active: true },
+      relations: ['employer'],
+      order: { createdAt: 'DESC' },
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    return {
+      data: vacancies.map((vacancy) => ({
+        id: vacancy.id,
+        title: vacancy.title,
+        description: vacancy.description,
+        salary_min: vacancy.salary_min,
+        salary_max: vacancy.salary_max,
+        is_active: vacancy.is_active,
+        createdAt: vacancy.createdAt,
+        employer: {
+          id: vacancy.employer.id,
+          firstName: vacancy.employer.firstName,
+          lastName: vacancy.employer.lastName,
+          company: vacancy.employer.company,
+        },
+      })),
+      count,
+    };
   }
 }
