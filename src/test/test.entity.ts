@@ -1,4 +1,4 @@
-import { User, VacancyTest } from '../entities';
+import { User, VacancyTest, QuestionEntity } from '../entities';
 import {
   Column,
   CreateDateColumn,
@@ -47,4 +47,7 @@ export class TestEntity {
 
   @OneToMany(() => VacancyTest, (vacancyTest) => vacancyTest.test)
   vacancies: VacancyTest[];
+
+  @OneToMany(() => QuestionEntity, (question) => question.test)
+  questions: QuestionEntity[];
 }
