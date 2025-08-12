@@ -34,7 +34,7 @@ export class TestEntity {
   type: TestType;
 
   @Column({ default: true })
-  isActive: boolean;
+  isPublic: boolean;
 
   @UpdateDateColumn()
   updatedAt: Date;

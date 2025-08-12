@@ -1,4 +1,22 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { UserRole, User } from 'src/entities';
+import { CreateTestDto } from './dto/test.dto';
+import { TestsService } from './test.service';
 
-@Controller('test')
-export class TestController {}
+@Controller('tests')
+export class TestsController {
+  constructor(private readonly testsService: TestsService) {}
+
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async create(
+    @Body() createTestDto: CreateTestDto,
+    @Req() req: Request & { user: User },
+  ) {
+    return this.testsService.createTest(createTestDto, req.user);
+  }
+}
