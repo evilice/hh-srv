@@ -1,4 +1,9 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TestEntity } from '../test/test.entity';
@@ -51,5 +56,27 @@ export class TestsService {
       take: limit,
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async deleteTest(user: User, testId: number) {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can delete tests');
+    }
+
+    const test = await this.testsRepository.findOne({
+      where: { id: testId },
+      relations: ['vacancies'],
+    });
+
+    if (!test) {
+      throw new NotFoundException(`Test with ID ${testId} not found`);
+    }
+
+    if (test.vacancies && test.vacancies.length > 0) {
+      throw new BadRequestException('Cannot delete test assigned to vacancies');
+    }
+
+    await this.testsRepository.delete(testId);
+    return { message: 'Test deleted successfully' };
   }
 }

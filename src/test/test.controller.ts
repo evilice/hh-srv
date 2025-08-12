@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -37,5 +40,15 @@ export class TestsController {
     @Query('limit') limit: number = 10,
   ) {
     return this.testsService.findAllTests(req.user, page, limit);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: User },
+  ) {
+    return this.testsService.deleteTest(req.user, id);
   }
 }
