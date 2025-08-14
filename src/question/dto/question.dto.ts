@@ -22,3 +22,17 @@ export class CreateQuestionDto {
   @IsNumber()
   testId: number;
 }
+
+export class UpdateQuestionDto {
+  @IsOptional()
+  @IsString()
+  questionText?: string;
+
+  @IsOptional()
+  @IsString()
+  questionType?: QuestionType;
+
+  @IsOptional()
+  @IsNumber()
+  score?: number;
+}

@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TestEntity } from '../test/test.entity';
-import { CreateTestDto } from './dto/test.dto';
+import { CreateTestDto, UpdateTestDto } from './dto/test.dto';
 import { User, UserRole } from '../user/user.entity';
 
 @Injectable()
@@ -16,6 +16,20 @@ export class TestsService {
     @InjectRepository(TestEntity)
     private testsRepository: Repository<TestEntity>,
   ) {}
+
+  async updateTest(user: User, id: number, updateTestDto: UpdateTestDto) {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can update tests');
+    }
+
+    const test = await this.testsRepository.findOneBy({ id });
+    if (!test) {
+      throw new NotFoundException(`Test with ID ${id} not found`);
+    }
+
+    Object.assign(test, updateTestDto);
+    return this.testsRepository.save(test);
+  }
 
   async createTest(createTestDto: CreateTestDto, user: User) {
     if (user.role !== UserRole.ADMIN) {

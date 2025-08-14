@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -14,7 +15,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UserRole, User } from 'src/entities';
-import { CreateTestDto } from './dto/test.dto';
+import { CreateTestDto, UpdateTestDto } from './dto/test.dto';
 import { TestsService } from './test.service';
 
 @Controller('tests')
@@ -50,5 +51,16 @@ export class TestsController {
     @Query('limit') limit: number = 10,
   ) {
     return this.testsService.findAllTests(req.user, page, limit);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateTest(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTestDto: UpdateTestDto,
+    @Req() req: Request & { user: User },
+  ) {
+    return this.testsService.updateTest(req.user, id, updateTestDto);
   }
 }

@@ -18,3 +18,13 @@ export class CreateAnswerDto {
   @IsNumber()
   questionId: number;
 }
+
+export class UpdateAnswerDto {
+  @IsOptional()
+  @IsString()
+  answerText?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isCorrect?: boolean;
+}
