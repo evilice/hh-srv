@@ -31,17 +31,6 @@ export class TestsController {
     return this.testsService.createTest(createTestDto, req.user);
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async findAll(
-    @Req() req: Request & { user: User },
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
-    return this.testsService.findAllTests(req.user, page, limit);
-  }
-
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -50,5 +39,16 @@ export class TestsController {
     @Req() req: Request & { user: User },
   ) {
     return this.testsService.deleteTest(req.user, id);
+  }
+
+  @Get('/')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async findAllWithDetails(
+    @Req() req: Request & { user: User },
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.testsService.findAllTests(req.user, page, limit);
   }
 }

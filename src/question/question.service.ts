@@ -68,7 +68,7 @@ export class QuestionsService {
 
     const answer = this.answersRepository.create({
       answerText: createAnswerDto.text,
-      isCorrect: createAnswerDto.isCorrect || false,
+      isCorrect: createAnswerDto.isCorrect,
       question,
     });
 

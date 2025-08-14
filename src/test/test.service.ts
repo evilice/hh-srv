@@ -30,34 +30,6 @@ export class TestsService {
     return this.testsRepository.save(test);
   }
 
-  async findAllTests(user: User, page: number = 1, limit: number = 10) {
-    if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Only admins can view all tests');
-    }
-
-    const skip = (page - 1) * limit;
-
-    return this.testsRepository.find({
-      relations: ['createdBy'],
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        type: true,
-        isPublic: true,
-        createdAt: true,
-        updatedAt: true,
-        createdBy: {
-          id: true,
-          email: true,
-        },
-      },
-      skip,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
-  }
-
   async deleteTest(user: User, testId: number) {
     if (user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Only admins can delete tests');
@@ -78,5 +50,56 @@ export class TestsService {
 
     await this.testsRepository.delete(testId);
     return { message: 'Test deleted successfully' };
+  }
+
+  async findAllTests(user: User, page: number = 1, limit: number = 10) {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can view all tests');
+    }
+
+    const skip = (page - 1) * limit;
+
+    return this.testsRepository.find({
+      relations: [
+        'createdBy',
+        'questions',
+        'questions.answers', // Добавляем загрузку вопросов и ответов
+      ],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        type: true,
+        isPublic: true,
+        createdAt: true,
+        updatedAt: true,
+        createdBy: {
+          id: true,
+          email: true,
+        },
+        questions: {
+          id: true,
+          questionText: true,
+          questionType: true,
+          score: true,
+          answers: {
+            id: true,
+            answerText: true,
+            isCorrect: true,
+          },
+        },
+      },
+      skip,
+      take: limit,
+      order: {
+        createdAt: 'DESC',
+        questions: {
+          id: 'ASC', // Сортировка вопросов по ID
+          answers: {
+            id: 'ASC', // Сортировка ответов по ID
+          },
+        },
+      },
+    });
   }
 }
