@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TestEntity } from '../test/test.entity';
-import { CreateTestDto } from './dto/test.dto';
+import { CreateTestDto, UpdateTestDto } from './dto/test.dto';
 import { User, UserRole } from '../user/user.entity';
 
 @Injectable()
@@ -16,6 +16,20 @@ export class TestsService {
     @InjectRepository(TestEntity)
     private testsRepository: Repository<TestEntity>,
   ) {}
+
+  async updateTest(user: User, id: number, updateTestDto: UpdateTestDto) {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can update tests');
+    }
+
+    const test = await this.testsRepository.findOneBy({ id });
+    if (!test) {
+      throw new NotFoundException(`Test with ID ${id} not found`);
+    }
+
+    Object.assign(test, updateTestDto);
+    return this.testsRepository.save(test);
+  }
 
   async createTest(createTestDto: CreateTestDto, user: User) {
     if (user.role !== UserRole.ADMIN) {
@@ -28,34 +42,6 @@ export class TestsService {
     });
 
     return this.testsRepository.save(test);
-  }
-
-  async findAllTests(user: User, page: number = 1, limit: number = 10) {
-    if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Only admins can view all tests');
-    }
-
-    const skip = (page - 1) * limit;
-
-    return this.testsRepository.find({
-      relations: ['createdBy'],
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        type: true,
-        isPublic: true,
-        createdAt: true,
-        updatedAt: true,
-        createdBy: {
-          id: true,
-          email: true,
-        },
-      },
-      skip,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
   }
 
   async deleteTest(user: User, testId: number) {
@@ -78,5 +64,56 @@ export class TestsService {
 
     await this.testsRepository.delete(testId);
     return { message: 'Test deleted successfully' };
+  }
+
+  async findAllTests(user: User, page: number = 1, limit: number = 10) {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can view all tests');
+    }
+
+    const skip = (page - 1) * limit;
+
+    return this.testsRepository.find({
+      relations: [
+        'createdBy',
+        'questions',
+        'questions.answers', // Добавляем загрузку вопросов и ответов
+      ],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        type: true,
+        isPublic: true,
+        createdAt: true,
+        updatedAt: true,
+        createdBy: {
+          id: true,
+          email: true,
+        },
+        questions: {
+          id: true,
+          questionText: true,
+          questionType: true,
+          score: true,
+          answers: {
+            id: true,
+            answerText: true,
+            isCorrect: true,
+          },
+        },
+      },
+      skip,
+      take: limit,
+      order: {
+        createdAt: 'DESC',
+        questions: {
+          id: 'ASC', // Сортировка вопросов по ID
+          answers: {
+            id: 'ASC', // Сортировка ответов по ID
+          },
+        },
+      },
+    });
   }
 }
