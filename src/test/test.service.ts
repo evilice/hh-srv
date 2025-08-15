@@ -105,15 +105,47 @@ export class TestsService {
       },
       skip,
       take: limit,
-      order: {
-        createdAt: 'DESC',
+    });
+  }
+
+  async findTestWithDetails(user: User, id: number) {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can view test details');
+    }
+
+    const test = await this.testsRepository.findOne({
+      where: { id },
+      relations: ['createdBy', 'questions', 'questions.answers'],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        type: true,
+        isPublic: true,
+        createdAt: true,
+        updatedAt: true,
+        createdBy: {
+          id: true,
+          email: true,
+        },
         questions: {
-          id: 'ASC', // Сортировка вопросов по ID
+          id: true,
+          questionText: true,
+          questionType: true,
+          score: true,
           answers: {
-            id: 'ASC', // Сортировка ответов по ID
+            id: true,
+            answerText: true,
+            isCorrect: true,
           },
         },
       },
     });
+
+    if (!test) {
+      throw new NotFoundException(`Test with ID ${id} not found`);
+    }
+
+    return test;
   }
 }

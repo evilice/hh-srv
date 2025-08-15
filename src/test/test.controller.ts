@@ -63,4 +63,14 @@ export class TestsController {
   ) {
     return this.testsService.updateTest(req.user, id, updateTestDto);
   }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async findOneWithDetails(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: User },
+  ) {
+    return this.testsService.findTestWithDetails(req.user, id);
+  }
 }
