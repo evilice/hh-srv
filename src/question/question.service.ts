@@ -41,6 +41,7 @@ export class QuestionsService {
       questionType: createQuestionDto.type,
       score: createQuestionDto.score || 1,
       test,
+      imagePath: createQuestionDto.image?.filename,
     });
 
     return this.questionsRepository.save(question);
