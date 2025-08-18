@@ -133,6 +133,7 @@ export class TestsService {
           questionText: true,
           questionType: true,
           score: true,
+          imagePath: true,
           answers: {
             id: true,
             answerText: true,
@@ -146,6 +147,17 @@ export class TestsService {
       throw new NotFoundException(`Test with ID ${id} not found`);
     }
 
-    return test;
+    // Добавляем полные URL к изображениям
+    const testWithImageUrls = {
+      ...test,
+      questions: test.questions.map((question) => ({
+        ...question,
+        imageUrl: question.imagePath
+          ? `${process.env.API_URL || 'http://localhost:3000'}/files/questions/${question.imagePath}`
+          : null,
+      })),
+    };
+
+    return testWithImageUrls;
   }
 }

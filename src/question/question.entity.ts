@@ -13,6 +13,7 @@ export enum QuestionType {
   SINGLE_CHOICE = 'single_choice',
   MULTIPLE_CHOICE = 'multiple_choice',
   TEXT = 'text',
+  IMAGE = 'image',
 }
 
 @Entity('test_questions')
@@ -42,6 +43,12 @@ export class QuestionEntity {
 
   @Column('int')
   score: number;
+
+  @Column({
+    name: 'image_path',
+    nullable: true,
+  })
+  imagePath: string;
 
   @CreateDateColumn({
     name: 'created_at',

@@ -8,6 +8,8 @@ import {
   HttpCode,
   HttpStatus,
   Put,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import {
   CreateQuestionDto,
@@ -17,6 +19,7 @@ import { CreateAnswerDto, UpdateAnswerDto } from '../answer/dto/answer.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../user/user.entity';
 import { QuestionsService } from './question.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('questions')
 export class QuestionsController {
@@ -24,7 +27,14 @@ export class QuestionsController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  async createQuestion(@Body() createQuestionDto: CreateQuestionDto) {
+  @UseInterceptors(FileInterceptor('image'))
+  async createQuestion(
+    @Body() createQuestionDto: CreateQuestionDto,
+    @UploadedFile() image?: Express.Multer.File,
+  ) {
+    if (image) {
+      createQuestionDto.image = image;
+    }
     return this.questionsService.createQuestion(createQuestionDto);
   }
 

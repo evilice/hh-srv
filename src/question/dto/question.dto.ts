@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { QuestionType } from '../../entities';
 import {
   IsEnum,
@@ -17,10 +18,15 @@ export class CreateQuestionDto {
 
   @IsNumber()
   @IsOptional()
+  @Transform(({ value }) => Number(value))
   score?: number;
 
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   testId: number;
+
+  @IsOptional()
+  image?: Express.Multer.File;
 }
 
 export class UpdateQuestionDto {

@@ -8,6 +8,7 @@ import { VacancyModule } from './vacancy/vacancy.module';
 import { TestModule } from './test/test.module';
 import { QuestionModule } from './question/question.module';
 import { AnswerModule } from './answer/answer.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AnswerModule } from './answer/answer.module';
     TestModule,
     QuestionModule,
     AnswerModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
