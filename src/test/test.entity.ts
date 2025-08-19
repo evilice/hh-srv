@@ -1,4 +1,4 @@
-import { User, VacancyTest, QuestionEntity } from '../entities';
+import { User, QuestionEntity, VacancyEntity } from '../entities';
 import {
   Column,
   CreateDateColumn,
@@ -45,9 +45,12 @@ export class TestEntity {
   @ManyToOne(() => User, (user) => user.tests)
   createdBy: User;
 
-  @OneToMany(() => VacancyTest, (vacancyTest) => vacancyTest.test)
-  vacancies: VacancyTest[];
+  // @OneToMany(() => VacancyTest, (vacancyTest) => vacancyTest.test)
+  // vacancies: VacancyTest[];
 
   @OneToMany(() => QuestionEntity, (question) => question.test)
   questions: QuestionEntity[];
+
+  @OneToMany(() => VacancyEntity, (vacancy) => vacancy.test)
+  vacancies: VacancyEntity[];
 }

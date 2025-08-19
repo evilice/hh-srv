@@ -67,7 +67,7 @@ export class TestsService {
   }
 
   async findAllTests(user: User, page: number = 1, limit: number = 10) {
-    if (user.role !== UserRole.ADMIN) {
+    if (user.role === UserRole.SEEKER) {
       throw new ForbiddenException('Only admins can view all tests');
     }
 

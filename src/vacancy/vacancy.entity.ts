@@ -1,4 +1,4 @@
-import { User, VacancyTest } from '../entities';
+import { TestEntity, User } from '../entities';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,7 +7,6 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -43,6 +42,37 @@ export class VacancyEntity {
   @Column({ name: 'employer_id' })
   employerId: number;
 
-  @OneToMany(() => VacancyTest, (vacancyTest) => vacancyTest.vacancy)
-  tests: VacancyTest[];
+  // NEW
+  @ManyToOne(() => TestEntity, (test) => test.vacancies, { nullable: true })
+  @JoinColumn({ name: 'test_id' }) // Прямая связь с тестом
+  test: TestEntity | null;
+
+  @Column({ name: 'test_id', nullable: true })
+  testId: number | null;
+
+  // @OneToMany(() => VacancyTest, (vacancyTest) => vacancyTest.vacancy)
+  // tests: VacancyTest[];
 }
+
+// Deleted entity
+// import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+// import { VacancyEntity } from './vacancy.entity';
+// import { TestEntity } from '../test/test.entity';
+
+// @Entity()
+// export class VacancyTest {
+//   @PrimaryGeneratedColumn()
+//   id: number;
+
+//   @ManyToOne(() => VacancyEntity, (vacancy) => vacancy.tests)
+//   vacancy: VacancyEntity;
+
+//   @ManyToOne(() => TestEntity, (test) => test.vacancies)
+//   test: TestEntity;
+
+//   @Column({ default: true })
+//   isRequired: boolean;
+
+//   @Column({ default: 0 })
+//   order: number; // Порядок прохождения тестов
+// }

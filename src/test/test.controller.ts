@@ -44,7 +44,7 @@ export class TestsController {
 
   @Get('/')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.EMPLOYER)
   async findAllWithDetails(
     @Req() req: Request & { user: User },
     @Query('page') page: number = 1,

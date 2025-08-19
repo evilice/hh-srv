@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateVacancyDto {
   @IsString()
@@ -19,7 +19,13 @@ export class CreateVacancyDto {
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  testId?: number;
 }
+
+export class UpdateVacancyDto extends CreateVacancyDto {}
 
 export class VacancyResponseDto {
   @Expose()
