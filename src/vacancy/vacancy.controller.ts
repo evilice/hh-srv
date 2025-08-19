@@ -6,8 +6,8 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Patch,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -47,7 +47,7 @@ export class VacancyController {
     return this.vacancyService.deleteVacancy(vacancyId, req.user.id);
   }
 
-  @Patch(':vacancy_id')
+  @Put(':vacancy_id')
   @Roles(UserRole.EMPLOYER)
   async update(
     @Param('vacancy_id', ParseIntPipe) vacancyId: number,

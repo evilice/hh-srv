@@ -3,24 +3,31 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { VacancyEntity } from './vacancy.entity';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
-import { VacancyResponseDto } from './dto/vacancy.dto';
+import { CreateVacancyDto, VacancyResponseDto } from './dto/vacancy.dto';
+import { TestEntity } from '../test/test.entity';
 
 @Injectable()
 export class VacancyService {
   constructor(
     @InjectRepository(VacancyEntity)
     private vacancyRepository: Repository<VacancyEntity>,
+    @InjectRepository(TestEntity)
+    private testRepository: Repository<TestEntity>,
   ) {}
 
   async createVacancy(
-    data: Partial<VacancyEntity>,
+    data: CreateVacancyDto,
     user: User,
   ): Promise<VacancyEntity> {
+    const { testId, ...vacancyData } = data;
+
     const vacancy = this.vacancyRepository.create({
-      ...data,
+      ...vacancyData,
       employer: user,
       employerId: user.id,
+      test: testId ? { id: testId } : null, // Привязываем тест, если указан
     });
+
     return this.vacancyRepository.save(vacancy);
   }
 
