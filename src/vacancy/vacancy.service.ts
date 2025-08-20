@@ -4,7 +4,7 @@ import { VacancyEntity } from './vacancy.entity';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { CreateVacancyDto, VacancyResponseDto } from './dto/vacancy.dto';
-import { TestEntity } from '../test/test.entity';
+import { TestEntity, ResponseEntity } from '../entities';
 
 @Injectable()
 export class VacancyService {
@@ -13,6 +13,8 @@ export class VacancyService {
     private vacancyRepository: Repository<VacancyEntity>,
     @InjectRepository(TestEntity)
     private testRepository: Repository<TestEntity>,
+    @InjectRepository(ResponseEntity) // Добавляем репозиторий откликов
+    private responseRepository: Repository<ResponseEntity>,
   ) {}
 
   async createVacancy(
@@ -69,31 +71,47 @@ export class VacancyService {
   async getAllActiveVacancies(
     page: number = 1,
     limit: number = 10,
+    userId?: number,
   ): Promise<{ data: VacancyResponseDto[]; count: number }> {
     const [vacancies, count] = await this.vacancyRepository.findAndCount({
       where: { is_active: true },
-      relations: ['employer'],
+      relations: ['employer', 'responses', 'responses.seeker'],
       order: { createdAt: 'DESC' },
       take: limit,
       skip: (page - 1) * limit,
     });
 
     return {
-      data: vacancies.map((vacancy) => ({
-        id: vacancy.id,
-        title: vacancy.title,
-        description: vacancy.description,
-        salary_min: vacancy.salary_min,
-        salary_max: vacancy.salary_max,
-        is_active: vacancy.is_active,
-        createdAt: vacancy.createdAt,
-        employer: {
-          id: vacancy.employer.id,
-          firstName: vacancy.employer.firstName,
-          lastName: vacancy.employer.lastName,
-          company: vacancy.employer.company,
-        },
-      })),
+      data: vacancies.map((vacancy) => {
+        // Находим отклик текущего пользователя на эту вакансию
+        const myResponse = vacancy.responses.find(
+          (response) => response.seeker.id === userId,
+        );
+
+        return {
+          id: vacancy.id,
+          title: vacancy.title,
+          description: vacancy.description,
+          salary_min: vacancy.salary_min,
+          salary_max: vacancy.salary_max,
+          is_active: vacancy.is_active,
+          createdAt: vacancy.createdAt,
+          employer: {
+            id: vacancy.employer.id,
+            firstName: vacancy.employer.firstName,
+            lastName: vacancy.employer.lastName,
+            company: vacancy.employer.company,
+          },
+          // Заменяем массив на одиночный объект
+          response: myResponse
+            ? {
+                id: myResponse.id,
+                status: myResponse.status,
+                createdAt: myResponse.createdAt,
+              }
+            : null,
+        };
+      }),
       count,
     };
   }
