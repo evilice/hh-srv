@@ -10,15 +10,17 @@ import { QuestionModule } from './question/question.module';
 import { AnswerModule } from './answer/answer.module';
 import { FilesModule } from './files/files.module';
 
+const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, NODE_ENV } = process.env;
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      database: 'hr',
-      username: 'postgres',
-      password: 'qwepoi123',
+      host: DB_HOST || 'localhost',
+      port: DB_PORT ? parseInt(DB_PORT) : 5432,
+      database: DB_DATABASE || 'hr',
+      username: DB_USERNAME || 'postgres',
+      password: DB_PASSWORD || 'qwepoi123',
       autoLoadEntities: true,
       synchronize: true,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],

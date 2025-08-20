@@ -10,13 +10,14 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtService as CustomJwtService } from './jwt.service';
 import { RolesGuard } from './guards/roles.guard';
 
+const { JWT_SECRET } = process.env;
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.register({
-      secret:
-        'mMEjJISTLAoTHUBvIqgsK6MvdIqdExpUeMf8Tr9aYET8vat6XdCUoADMbgRrEhgl', // In production, use environment variable
+      secret: JWT_SECRET,
       signOptions: { expiresIn: '15m' },
     }),
   ],
