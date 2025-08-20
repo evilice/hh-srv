@@ -20,7 +20,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 
-interface RequestWithUser extends Request {
+export interface RequestWithUser extends Request {
   user: User;
 }
 
@@ -72,7 +72,12 @@ export class VacancyController {
   async getAllVacancies(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Req() req: RequestWithUser,
   ) {
-    return this.vacancyService.getAllActiveVacancies(page, limit);
+    return this.vacancyService.getAllActiveVacancies(
+      page,
+      limit,
+      req.user.id, // Передаем ID текущего пользователя
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { TestEntity, User } from '../entities';
+import { TestEntity, User, ResponseEntity } from '../entities';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -49,6 +50,9 @@ export class VacancyEntity {
 
   @Column({ name: 'test_id', nullable: true })
   testId: number | null;
+
+  @OneToMany(() => ResponseEntity, (response) => response.vacancy)
+  responses: ResponseEntity[];
 
   // @OneToMany(() => VacancyTest, (vacancyTest) => vacancyTest.vacancy)
   // tests: VacancyTest[];

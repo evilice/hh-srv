@@ -9,6 +9,7 @@ import { TestModule } from './test/test.module';
 import { QuestionModule } from './question/question.module';
 import { AnswerModule } from './answer/answer.module';
 import { FilesModule } from './files/files.module';
+import { ResponseModule } from './response/response.module';
 
 const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, NODE_ENV } = process.env;
 
@@ -34,6 +35,7 @@ const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, NODE_ENV } = pr
     QuestionModule,
     AnswerModule,
     FilesModule,
+    ResponseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

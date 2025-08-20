@@ -1,4 +1,4 @@
-import { TestEntity, VacancyEntity } from '../entities';
+import { TestEntity, VacancyEntity, ResponseEntity } from '../entities';
 import {
   Entity,
   Column,
@@ -67,4 +67,7 @@ export class User {
 
   @OneToMany(() => TestEntity, (test) => test.createdBy)
   tests: TestEntity[];
+
+  @OneToMany(() => ResponseEntity, (response) => response.seeker)
+  responses: ResponseEntity[];
 }
