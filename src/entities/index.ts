@@ -4,3 +4,5 @@ export * from '../test/test.entity';
 export * from '../question/question.entity';
 export * from '../answer/answer.entity';
 export * from '../response/response.entity';
+export * from '../result/result.entity';
+export * from '../user-answer/user-answer.entity';

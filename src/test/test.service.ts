@@ -7,14 +7,25 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TestEntity } from '../test/test.entity';
-import { CreateTestDto, UpdateTestDto } from './dto/test.dto';
+import {
+  CreateTestDto,
+  SubmitTestAnswersDto,
+  UpdateTestDto,
+} from './dto/test.dto';
 import { User, UserRole } from '../user/user.entity';
+import { TestResultEntity, UserAnswerEntity, VacancyEntity } from '../entities';
 
 @Injectable()
 export class TestsService {
   constructor(
     @InjectRepository(TestEntity)
     private testsRepository: Repository<TestEntity>,
+    @InjectRepository(VacancyEntity)
+    private vacancyRepository: Repository<VacancyEntity>,
+    @InjectRepository(TestResultEntity)
+    private testResultRepository: Repository<TestResultEntity>,
+    @InjectRepository(UserAnswerEntity)
+    private userAnswerRepository: Repository<UserAnswerEntity>,
   ) {}
 
   async updateTest(user: User, id: number, updateTestDto: UpdateTestDto) {
@@ -159,5 +170,83 @@ export class TestsService {
     };
 
     return testWithImageUrls;
+  }
+
+  async getTestForVacancy(vacancyId: number): Promise<any> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['test', 'test.questions', 'test.questions.answers'],
+    });
+
+    if (!vacancy || !vacancy.test) {
+      throw new NotFoundException('Тест для вакансии не найден');
+    }
+
+    return {
+      testId: vacancy.test.id,
+      title: vacancy.test.title,
+      description: vacancy.test.description,
+      questions: vacancy.test.questions.map((question) => ({
+        id: question.id,
+        questionText: question.questionText,
+        questionType: question.questionType,
+        score: question.score,
+        imageUrl: question.imagePath
+          ? `${process.env.API_URL}/files/questions/${question.imagePath}`
+          : null,
+        answers: question.answers.map((answer) => ({
+          id: answer.id,
+          answerText: answer.answerText,
+          // isCorrect не отправляем для пользователя
+        })),
+      })),
+    };
+  }
+
+  // Создание ответов на вопросы для seeker
+  async submitTestAnswers(
+    userId: number,
+    testId: number,
+    submitDto: SubmitTestAnswersDto,
+  ) {
+    console.log('userId', userId);
+    console.log('testId', testId);
+    console.log('submitDto', submitDto);
+
+    const test = await this.testsRepository.findOne({
+      where: { id: testId },
+      relations: ['questions', 'questions.answers'],
+    });
+
+    if (!test) {
+      throw new NotFoundException('Тест не найден');
+    }
+
+    const userAnswers: UserAnswerEntity[] = [];
+
+    // Проверяем ответы
+    for (const userAnswer of submitDto.answers) {
+      const question = test.questions.find(
+        (q) => q.id === userAnswer.questionId,
+      );
+      if (!question) continue;
+
+      const answerEntity = this.userAnswerRepository.create({
+        question: { id: question.id },
+        answer: userAnswer.answerId ? { id: userAnswer.answerId } : null,
+        answerText: userAnswer.answerText,
+      });
+
+      userAnswers.push(answerEntity);
+    }
+
+    // Сохраняем результат
+    const testResult = this.testResultRepository.create({
+      test: { id: testId },
+      seeker: { id: userId },
+      userAnswers,
+    });
+
+    return this.testResultRepository.save(testResult);
   }
 }

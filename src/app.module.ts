@@ -10,8 +10,10 @@ import { QuestionModule } from './question/question.module';
 import { AnswerModule } from './answer/answer.module';
 import { FilesModule } from './files/files.module';
 import { ResponseModule } from './response/response.module';
+import { ResultModule } from './result/result.module';
+import { UserAnswerModule } from './user-answer/user-answer.module';
 
-const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, NODE_ENV } = process.env;
+const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD } = process.env;
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, NODE_ENV } = pr
     AnswerModule,
     FilesModule,
     ResponseModule,
+    ResultModule,
+    UserAnswerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

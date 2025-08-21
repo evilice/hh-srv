@@ -1,4 +1,9 @@
-import { TestEntity, VacancyEntity, ResponseEntity } from '../entities';
+import {
+  TestEntity,
+  VacancyEntity,
+  ResponseEntity,
+  TestResultEntity,
+} from '../entities';
 import {
   Entity,
   Column,
@@ -70,4 +75,7 @@ export class User {
 
   @OneToMany(() => ResponseEntity, (response) => response.seeker)
   responses: ResponseEntity[];
+
+  @OneToMany(() => TestResultEntity, (testResult) => testResult.seeker)
+  testResults: TestResultEntity[];
 }

@@ -6,8 +6,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
-import { User, VacancyEntity } from '../entities';
+import { TestResultEntity, User, VacancyEntity } from '../entities';
 
 export enum ResponseStatus {
   PENDING = 'pending',
@@ -40,6 +41,9 @@ export class ResponseEntity {
     default: ResponseStatus.PENDING,
   })
   status: ResponseStatus;
+
+  @OneToMany(() => TestResultEntity, (testResult) => testResult.response)
+  testResults: TestResultEntity[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
