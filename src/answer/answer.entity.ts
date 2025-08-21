@@ -4,8 +4,9 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
-import { QuestionEntity } from '../entities';
+import { QuestionEntity, UserAnswerEntity } from '../entities';
 
 @Entity('test_answers')
 export class AnswerEntity {
@@ -29,4 +30,7 @@ export class AnswerEntity {
     nullable: true,
   })
   isCorrect: boolean;
+
+  @OneToMany(() => UserAnswerEntity, (userAnswer) => userAnswer.answer)
+  userAnswers: UserAnswerEntity[];
 }

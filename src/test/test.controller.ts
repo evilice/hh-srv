@@ -15,7 +15,11 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UserRole, User } from 'src/entities';
-import { CreateTestDto, UpdateTestDto } from './dto/test.dto';
+import {
+  CreateTestDto,
+  SubmitTestAnswersDto,
+  UpdateTestDto,
+} from './dto/test.dto';
 import { TestsService } from './test.service';
 
 @Controller('tests')
@@ -72,5 +76,24 @@ export class TestsController {
     @Req() req: Request & { user: User },
   ) {
     return this.testsService.findTestWithDetails(req.user, id);
+  }
+
+  @Get('vacancy/:vacancyId')
+  @Roles(UserRole.SEEKER)
+  async getTestForVacancy(@Param('vacancyId', ParseIntPipe) vacancyId: number) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this.testsService.getTestForVacancy(vacancyId);
+  }
+
+  // Создание ответа на вопрос
+  @Post('submit/:testId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SEEKER)
+  async submitTestAnswers(
+    @Param('testId', ParseIntPipe) testId: number,
+    @Body() submitDto: SubmitTestAnswersDto,
+    @Req() req: Request & { user: User },
+  ) {
+    return this.testsService.submitTestAnswers(req.user.id, testId, submitDto);
   }
 }

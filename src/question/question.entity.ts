@@ -7,7 +7,7 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { AnswerEntity, TestEntity } from '../entities';
+import { AnswerEntity, TestEntity, UserAnswerEntity } from '../entities';
 
 export enum QuestionType {
   SINGLE_CHOICE = 'single_choice',
@@ -59,4 +59,7 @@ export class QuestionEntity {
 
   @OneToMany(() => AnswerEntity, (answer) => answer.question)
   answers: AnswerEntity[];
+
+  @OneToMany(() => UserAnswerEntity, (userAnswer) => userAnswer.question)
+  userAnswers: UserAnswerEntity[];
 }
