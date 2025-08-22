@@ -57,6 +57,33 @@ export class TestsController {
     return this.testsService.findAllTests(req.user, page, limit);
   }
 
+  @Get('vacancy/:vacancyId')
+  @Roles(UserRole.SEEKER)
+  async getTestForVacancy(@Param('vacancyId', ParseIntPipe) vacancyId: number) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this.testsService.getTestForVacancy(vacancyId);
+  }
+
+  @Get('iq')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SEEKER)
+  async getIqTest() {
+    return this.testsService.getIqTestForSeeker();
+  }
+
+  // Создание ответа на вопрос
+  @Post('submit/:testId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SEEKER)
+  async submitTestAnswers(
+    @Param('testId', ParseIntPipe) testId: number,
+    @Body() submitDto: SubmitTestAnswersDto,
+    @Req() req: Request & { user: User },
+  ) {
+    console.log('submitDto', submitDto);
+    return this.testsService.submitTestAnswers(req.user.id, testId, submitDto);
+  }
+
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -76,24 +103,5 @@ export class TestsController {
     @Req() req: Request & { user: User },
   ) {
     return this.testsService.findTestWithDetails(req.user, id);
-  }
-
-  @Get('vacancy/:vacancyId')
-  @Roles(UserRole.SEEKER)
-  async getTestForVacancy(@Param('vacancyId', ParseIntPipe) vacancyId: number) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.testsService.getTestForVacancy(vacancyId);
-  }
-
-  // Создание ответа на вопрос
-  @Post('submit/:testId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SEEKER)
-  async submitTestAnswers(
-    @Param('testId', ParseIntPipe) testId: number,
-    @Body() submitDto: SubmitTestAnswersDto,
-    @Req() req: Request & { user: User },
-  ) {
-    return this.testsService.submitTestAnswers(req.user.id, testId, submitDto);
   }
 }

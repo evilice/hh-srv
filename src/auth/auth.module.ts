@@ -10,6 +10,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtService as CustomJwtService } from './jwt.service';
 import { RolesGuard } from './guards/roles.guard';
 
+// Umcommet when use docker
 const { JWT_SECRET } = process.env;
 
 @Module({
@@ -17,6 +18,9 @@ const { JWT_SECRET } = process.env;
     TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.register({
+      // When use docker change to env var
+      // secret:
+      //   'mMEjJISTLAoTHUBvIqgsK6MvdIqdExpUeMf8Tr9aYET8vat6XdCUoADMbgRrEhgl',
       secret: JWT_SECRET,
       signOptions: { expiresIn: '15m' },
     }),
