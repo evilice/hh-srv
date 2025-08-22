@@ -71,6 +71,13 @@ export class TestsController {
     return this.testsService.getIqTestForSeeker();
   }
 
+  @Get('psy')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SEEKER)
+  async getPsyTest() {
+    return await this.testsService.getPsyTestForSeeker();
+  }
+
   // Создание ответа на вопрос
   @Post('submit/:testId')
   @UseGuards(JwtAuthGuard, RolesGuard)
