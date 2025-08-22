@@ -7,6 +7,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TestEntity } from '../test/test.entity';
+import { TestType } from '../test/test.entity';
+import { QuestionType } from '../question/question.entity';
 import {
   CreateTestDto,
   SubmitTestAnswersDto,
@@ -224,20 +226,43 @@ export class TestsService {
 
     const userAnswers: UserAnswerEntity[] = [];
 
-    // Проверяем ответы
+    // Обрабатываем ответы для каждого вопроса
     for (const userAnswer of submitDto.answers) {
       const question = test.questions.find(
         (q) => q.id === userAnswer.questionId,
       );
       if (!question) continue;
 
-      const answerEntity = this.userAnswerRepository.create({
-        question: { id: question.id },
-        answer: userAnswer.answerId ? { id: userAnswer.answerId } : null,
-        answerText: userAnswer.answerText,
-      });
-
-      userAnswers.push(answerEntity);
+      if (
+        question.questionType === QuestionType.MULTIPLE_CHOICE &&
+        userAnswer.answerIds
+      ) {
+        // Для multiple choice создаем отдельную запись для каждого выбранного ответа
+        for (const answerId of userAnswer.answerIds) {
+          const answerEntity = this.userAnswerRepository.create({
+            question: { id: question.id },
+            answer: { id: answerId },
+            answerText: null, // Для multiple choice используем связь с answer
+          });
+          userAnswers.push(answerEntity);
+        }
+      } else if (userAnswer.answerId) {
+        // Для single choice
+        const answerEntity = this.userAnswerRepository.create({
+          question: { id: question.id },
+          answer: { id: userAnswer.answerId },
+          answerText: null,
+        });
+        userAnswers.push(answerEntity);
+      } else if (userAnswer.answerText) {
+        // Для текстовых ответов
+        const answerEntity = this.userAnswerRepository.create({
+          question: { id: question.id },
+          answer: null,
+          answerText: userAnswer.answerText,
+        });
+        userAnswers.push(answerEntity);
+      }
     }
 
     // Сохраняем результат
@@ -248,5 +273,56 @@ export class TestsService {
     });
 
     return this.testResultRepository.save(testResult);
+  }
+
+  async getIqTestForSeeker() {
+    const iqTest = await this.testsRepository.findOne({
+      where: { type: TestType.IQ, isPublic: true },
+      relations: ['questions', 'questions.answers'],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        type: true,
+        isPublic: true,
+        questions: {
+          id: true,
+          questionText: true,
+          questionType: true,
+          score: true,
+          imagePath: true,
+          answers: {
+            id: true,
+            answerText: true,
+          },
+        },
+      },
+      order: {
+        id: 'ASC',
+      },
+    });
+
+    if (!iqTest) {
+      throw new NotFoundException('Публичный IQ тест не найден');
+    }
+
+    return {
+      id: iqTest.id,
+      title: iqTest.title,
+      description: iqTest.description,
+      questions: iqTest.questions.map((question) => ({
+        id: question.id,
+        questionText: question.questionText,
+        questionType: question.questionType,
+        score: question.score,
+        imageUrl: question.imagePath
+          ? `${process.env.API_URL || 'http://localhost:3000'}/files/questions/${question.imagePath}`
+          : null,
+        answers: question.answers.map((answer) => ({
+          id: answer.id,
+          answerText: answer.answerText,
+        })),
+      })),
+    };
   }
 }
