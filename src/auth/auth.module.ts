@@ -11,7 +11,7 @@ import { JwtService as CustomJwtService } from './jwt.service';
 import { RolesGuard } from './guards/roles.guard';
 
 // Umcommet when use docker
-const { JWT_SECRET } = process.env;
+// const { JWT_SECRET } = process.env;
 
 @Module({
   imports: [
@@ -19,9 +19,9 @@ const { JWT_SECRET } = process.env;
     PassportModule,
     JwtModule.register({
       // When use docker change to env var
-      // secret:
-      //   'mMEjJISTLAoTHUBvIqgsK6MvdIqdExpUeMf8Tr9aYET8vat6XdCUoADMbgRrEhgl',
-      secret: JWT_SECRET,
+      secret:
+        'mMEjJISTLAoTHUBvIqgsK6MvdIqdExpUeMf8Tr9aYET8vat6XdCUoADMbgRrEhgl',
+      // secret: JWT_SECRET,
       signOptions: { expiresIn: '15m' },
     }),
   ],

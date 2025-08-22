@@ -325,4 +325,55 @@ export class TestsService {
       })),
     };
   }
+
+  async getPsyTestForSeeker() {
+    const psyTest = await this.testsRepository.findOne({
+      where: { type: TestType.PSY, isPublic: true },
+      relations: ['questions', 'questions.answers'],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        type: true,
+        isPublic: true,
+        questions: {
+          id: true,
+          questionText: true,
+          questionType: true,
+          score: true,
+          imagePath: true,
+          answers: {
+            id: true,
+            answerText: true,
+          },
+        },
+      },
+      order: {
+        id: 'ASC',
+      },
+    });
+
+    if (!psyTest) {
+      throw new NotFoundException('Публичный PSY тест не найден');
+    }
+
+    return {
+      id: psyTest.id,
+      title: psyTest.title,
+      description: psyTest.description,
+      questions: psyTest.questions.map((question) => ({
+        id: question.id,
+        questionText: question.questionText,
+        questionType: question.questionType,
+        score: question.score,
+        imageUrl: question.imagePath
+          ? `${process.env.API_URL || 'http://localhost:3000'}/files/questions/${question.imagePath}`
+          : null,
+        answers: question.answers.map((answer) => ({
+          id: answer.id,
+          answerText: answer.answerText,
+        })),
+      })),
+    };
+  }
 }
