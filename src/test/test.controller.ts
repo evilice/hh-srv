@@ -78,6 +78,16 @@ export class TestsController {
     return await this.testsService.getPsyTestForSeeker();
   }
 
+  @Get('special/:vacancyId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SEEKER)
+  async getSpecialTestForVacancy(
+    @Param('vacancyId', ParseIntPipe) vacancyId: number,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+    return await this.testsService.getSpecialTestForVacancy(vacancyId);
+  }
+
   // Создание ответа на вопрос
   @Post('submit/:testId')
   @UseGuards(JwtAuthGuard, RolesGuard)

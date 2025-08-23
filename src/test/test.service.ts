@@ -376,4 +376,39 @@ export class TestsService {
       })),
     };
   }
+
+  async getSpecialTestForVacancy(vacancyId: number): Promise<any> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['test', 'test.questions', 'test.questions.answers'],
+    });
+
+    if (!vacancy || !vacancy.test) {
+      throw new NotFoundException('Тест для вакансии не найден');
+    }
+
+    if (vacancy.test.type !== TestType.SPECIAL) {
+      throw new BadRequestException('Вакансия не содержит специальный тест');
+    }
+
+    return {
+      id: vacancy.test.id,
+      title: vacancy.test.title,
+      description: vacancy.test.description,
+      questions: vacancy.test.questions.map((question) => ({
+        id: question.id,
+        questionText: question.questionText,
+        questionType: question.questionType,
+        score: question.score,
+        imageUrl: question.imagePath
+          ? `${process.env.API_URL || 'http://localhost:3000'}/files/questions/${question.imagePath}`
+          : null,
+        answers: question.answers.map((answer) => ({
+          id: answer.id,
+          answerText: answer.answerText,
+          // isCorrect не отправляем для пользователя
+        })),
+      })),
+    };
+  }
 }

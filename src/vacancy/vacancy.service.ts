@@ -4,7 +4,12 @@ import { VacancyEntity } from './vacancy.entity';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { CreateVacancyDto, VacancyResponseDto } from './dto/vacancy.dto';
-import { TestEntity, ResponseEntity } from '../entities';
+import {
+  TestEntity,
+  ResponseEntity,
+  TestResultEntity,
+  TestType,
+} from '../entities';
 
 @Injectable()
 export class VacancyService {
@@ -15,6 +20,8 @@ export class VacancyService {
     private testRepository: Repository<TestEntity>,
     @InjectRepository(ResponseEntity) // Добавляем репозиторий откликов
     private responseRepository: Repository<ResponseEntity>,
+    @InjectRepository(TestResultEntity)
+    private testResultRepository: Repository<TestResultEntity>,
   ) {}
 
   async createVacancy(
@@ -75,44 +82,72 @@ export class VacancyService {
   ): Promise<{ data: VacancyResponseDto[]; count: number }> {
     const [vacancies, count] = await this.vacancyRepository.findAndCount({
       where: { is_active: true },
-      relations: ['employer', 'responses', 'responses.seeker'],
+      relations: ['employer', 'responses', 'responses.seeker', 'test'],
       order: { createdAt: 'DESC' },
       take: limit,
       skip: (page - 1) * limit,
     });
 
     return {
-      data: vacancies.map((vacancy) => {
-        // Находим отклик текущего пользователя на эту вакансию
-        const myResponse = vacancy.responses.find(
-          (response) => response.seeker.id === userId,
-        );
+      data: await Promise.all(
+        vacancies.map(async (vacancy) => {
+          // Находим отклик текущего пользователя на эту вакансию
+          const myResponse = vacancy.responses.find(
+            (response) => response.seeker.id === userId,
+          );
 
-        return {
-          id: vacancy.id,
-          title: vacancy.title,
-          description: vacancy.description,
-          salary_min: vacancy.salary_min,
-          salary_max: vacancy.salary_max,
-          is_active: vacancy.is_active,
-          createdAt: vacancy.createdAt,
-          employer: {
-            id: vacancy.employer.id,
-            firstName: vacancy.employer.firstName,
-            lastName: vacancy.employer.lastName,
-            company: vacancy.employer.company,
-          },
-          // Заменяем массив на одиночный объект
-          response: myResponse
-            ? {
-                id: myResponse.id,
-                status: myResponse.status,
-                createdAt: myResponse.createdAt,
-              }
-            : null,
-        };
-      }),
+          // Проверяем, прошел ли пользователь специальный тест
+          let hasPassedSpecialTest: boolean | undefined = undefined;
+          if (
+            vacancy.test &&
+            vacancy.test.type === TestType.SPECIAL &&
+            userId
+          ) {
+            hasPassedSpecialTest = await this.hasSeekerCompletedTest(
+              userId,
+              vacancy.test.id,
+            );
+          }
+
+          return {
+            id: vacancy.id,
+            title: vacancy.title,
+            description: vacancy.description,
+            salary_min: vacancy.salary_min,
+            salary_max: vacancy.salary_max,
+            is_active: vacancy.is_active,
+            createdAt: vacancy.createdAt,
+            employer: {
+              id: vacancy.employer.id,
+              firstName: vacancy.employer.firstName,
+              lastName: vacancy.employer.lastName,
+              company: vacancy.employer.company,
+            },
+            hasPassedSpecialTest,
+            response: myResponse
+              ? {
+                  id: myResponse.id,
+                  status: myResponse.status,
+                  createdAt: myResponse.createdAt,
+                }
+              : undefined,
+          };
+        }),
+      ),
       count,
     };
+  }
+
+  private async hasSeekerCompletedTest(
+    seekerId: number,
+    testId: number,
+  ): Promise<boolean> {
+    const testResult = await this.testResultRepository.findOne({
+      where: {
+        seeker: { id: seekerId },
+        test: { id: testId },
+      },
+    });
+    return !!testResult;
   }
 }

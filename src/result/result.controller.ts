@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -31,23 +38,23 @@ export class ResultController {
     };
   }
 
-  // @Get('check-special/:vacancyId') // vacancyId передаем как параметр пути
-  // async checkSpecialTestForVacancy(
-  //   @Param('vacancyId', ParseIntPipe) vacancyId: number, // Получаем и парсим ID вакансии
-  //   @Req() req: RequestWithUser,
-  // ) {
-  //   const hasCompleted = await this.resultService.checkSpecialTestForVacancy(
-  //     req.user.id, // ID текущего пользователя (seeker)
-  //     vacancyId, // ID вакансии из запроса
-  //   );
+  @Get('check-special/:vacancyId') // vacancyId передаем как параметр пути
+  async checkSpecialTestForVacancy(
+    @Param('vacancyId', ParseIntPipe) vacancyId: number, // Получаем и парсим ID вакансии
+    @Req() req: RequestWithUser,
+  ) {
+    const hasCompleted = await this.resultService.checkSpecialTestForVacancy(
+      req.user.id, // ID текущего пользователя (seeker)
+      vacancyId, // ID вакансии из запроса
+    );
 
-  //   return {
-  //     hasCompleted,
-  //     message: hasCompleted
-  //       ? `Специальный тест для вакансии #${vacancyId} пройден`
-  //       : `Специальный тест для вакансии #${vacancyId} не пройден`,
-  //   };
-  // }
+    return {
+      hasCompleted,
+      message: hasCompleted
+        ? `Специальный тест для вакансии #${vacancyId} пройден`
+        : `Специальный тест для вакансии #${vacancyId} не пройден`,
+    };
+  }
 
   //   @Get('my')
   //   async getMyResults(@Req() req: RequestWithUser) {

@@ -56,4 +56,14 @@ export class VacancyResponseDto {
     lastName: string;
     company: string;
   };
+
+  @Expose()
+  hasPassedSpecialTest?: boolean;
+
+  @Expose()
+  response?: {
+    id: number;
+    status: string;
+    createdAt: Date;
+  };
 }
