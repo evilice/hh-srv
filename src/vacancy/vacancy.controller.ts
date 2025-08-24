@@ -15,7 +15,7 @@ import {
 import { VacancyService } from './vacancy.service';
 import { VacancyEntity } from './vacancy.entity';
 import { User, UserRole } from '../user/user.entity';
-import { CreateVacancyDto } from './dto/vacancy.dto';
+import { CreateVacancyDto, VacancyResponseType } from './dto/vacancy.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -65,6 +65,14 @@ export class VacancyController {
   @Roles(UserRole.EMPLOYER)
   async getMyVacancies(@Req() req: RequestWithUser): Promise<VacancyEntity[]> {
     return this.vacancyService.getEmployerVacancies(req.user.id);
+  }
+
+  @Get(':vacancy_id')
+  async getVacancy(
+    @Param('vacancy_id', ParseIntPipe) vacancyId: number,
+    @Req() req: RequestWithUser,
+  ): Promise<VacancyResponseType> {
+    return this.vacancyService.getVacancyWithRoleBasedInfo(vacancyId, req.user);
   }
 
   @Get()

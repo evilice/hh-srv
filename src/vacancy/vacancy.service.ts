@@ -3,13 +3,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { VacancyEntity } from './vacancy.entity';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
-import { CreateVacancyDto, VacancyResponseDto } from './dto/vacancy.dto';
+import {
+  CreateVacancyDto,
+  VacancyResponseDto,
+  VacancyResponseType,
+} from './dto/vacancy.dto';
 import {
   TestEntity,
   ResponseEntity,
   TestResultEntity,
   TestType,
 } from '../entities';
+import { UserRole } from '../user/user.entity';
+import { ResponseStatus } from '../response/response.entity';
 
 @Injectable()
 export class VacancyService {
@@ -75,6 +81,132 @@ export class VacancyService {
     });
   }
 
+  async getVacancyWithRoleBasedInfo(
+    vacancyId: number,
+    user: User,
+  ): Promise<VacancyResponseType> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: [
+        'employer',
+        'responses',
+        'responses.seeker',
+        'responses.testResults',
+        'test',
+      ],
+      order: {
+        responses: {
+          createdAt: 'DESC',
+        },
+      },
+    });
+
+    if (!vacancy) {
+      throw new NotFoundException(`Vacancy with ID ${vacancyId} not found`);
+    }
+
+    // Базовая информация о вакансии
+    const baseVacancyInfo = {
+      id: vacancy.id,
+      title: vacancy.title,
+      description: vacancy.description,
+      salary_min: vacancy.salary_min,
+      salary_max: vacancy.salary_max,
+      is_active: vacancy.is_active,
+      createdAt: vacancy.createdAt,
+      updatedAt: vacancy.updatedAt,
+      employer: {
+        id: vacancy.employer.id,
+        firstName: vacancy.employer.firstName,
+        lastName: vacancy.employer.lastName,
+        company: vacancy.employer.company,
+      },
+      test: vacancy.test
+        ? {
+            id: vacancy.test.id,
+            title: vacancy.test.title,
+            type: vacancy.test.type,
+            description: vacancy.test.description,
+          }
+        : null,
+    };
+
+    // Если это employer и это его вакансия - возвращаем полную информацию с откликами
+    if (user.role === UserRole.EMPLOYER && vacancy.employerId === user.id) {
+      const responsesWithSeekerInfo = vacancy.responses.map((response) => ({
+        id: response.id,
+        status: response.status,
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt,
+        seeker: {
+          id: response.seeker.id,
+          firstName: response.seeker.firstName,
+          lastName: response.seeker.lastName,
+          email: response.seeker.email,
+          company: response.seeker.company,
+        },
+        testResults:
+          response.testResults?.map((testResult) => ({
+            id: testResult.id,
+            completedAt: testResult.completedAt,
+            test: {
+              id: testResult.test.id,
+              title: testResult.test.title,
+              type: testResult.test.type,
+            },
+            userAnswers: testResult.userAnswers?.length || 0,
+          })) || [],
+      }));
+
+      return {
+        ...baseVacancyInfo,
+        responses: responsesWithSeekerInfo,
+        totalResponses: vacancy.responses.length,
+        pendingResponses: vacancy.responses.filter(
+          (r) => r.status === ResponseStatus.PENDING,
+        ).length,
+        acceptedResponses: vacancy.responses.filter(
+          (r) => r.status === ResponseStatus.ACCEPTED,
+        ).length,
+        rejectedResponses: vacancy.responses.filter(
+          (r) => r.status === ResponseStatus.REJECTED,
+        ).length,
+      };
+    }
+
+    // Если это seeker - возвращаем базовую информацию + статус отклика
+    if (user.role === UserRole.SEEKER) {
+      const myResponse = vacancy.responses.find(
+        (response) => response.seeker.id === user.id,
+      );
+
+      // Проверяем, прошел ли пользователь специальный тест
+      let hasPassedSpecialTest: boolean | undefined = undefined;
+      if (vacancy.test && vacancy.test.type === TestType.SPECIAL) {
+        hasPassedSpecialTest = await this.hasSeekerCompletedTest(
+          user.id,
+          vacancy.test.id,
+        );
+      }
+
+      return {
+        ...baseVacancyInfo,
+        hasPassedSpecialTest,
+        response: myResponse
+          ? {
+              id: myResponse.id,
+              status: myResponse.status,
+              createdAt: myResponse.createdAt,
+            }
+          : undefined,
+        hasMyResponse: !!myResponse,
+      };
+    }
+
+    // Для других ролей возвращаем только базовую информацию
+    return baseVacancyInfo;
+  }
+
   async getAllActiveVacancies(
     page: number = 1,
     limit: number = 10,
@@ -131,6 +263,7 @@ export class VacancyService {
                   createdAt: myResponse.createdAt,
                 }
               : undefined,
+            hasMyResponse: !!myResponse,
           };
         }),
       ),
